@@ -235,11 +235,12 @@ const success=()=>st.total?Math.round(st.good/st.total*100):0;
 function apply(fx){st.money+=fx.m||0;st.career=clamp(st.career+(fx.c||0));st.happy=clamp(st.happy+(fx.h||0));st.stress=clamp(st.stress+(fx.s||0));st.relations=clamp(st.relations+(fx.r||0));st.debt=Math.max(0,st.debt+(fx.d||0))}
 function avatar(){
  let mood=st.strength<=20?"dead":st.strength<=40?"weak":st.strength>=80?"strong":"normal";
+ let era=st.age>=28?"veteran":st.age>=23?"adult":"young";
  let body=mood==="dead"?`<g class="char dead"><circle cx="60" cy="35" r="18"/><path d="M50 28l20 14M70 28L50 42"/><path d="M60 53v45M60 64L35 78M60 64l25 14M60 98L42 125M60 98l18 27"/></g>`:
  mood==="weak"?`<g class="char weak"><circle cx="60" cy="30" r="16"/><path d="M60 46v48M60 58L38 73M60 58l22 15M60 94l-14 30M60 94l14 30"/><path d="M48 27q12 8 24 0"/></g>`:
  mood==="strong"?`<g class="char strong"><circle cx="60" cy="28" r="17"/><path d="M60 45v50M60 56L30 72M60 56l30 16M60 95L40 126M60 95l20 31"/><path d="M42 55Q25 45 18 60M78 55Q95 45 102 60"/></g>`:
  `<g class="char"><circle cx="60" cy="30" r="16"/><path d="M60 46v48M60 57L37 73M60 57l23 16M60 94L45 124M60 94l15 30"/><path d="M50 28q10 7 20 0"/></g>`;
- return `<svg viewBox="0 0 120 145" aria-label="Seu personagem">${avatarGround()}${body}</svg>`
+ return `<svg class="avatar ${era}" viewBox="0 0 120 145" aria-label="Seu personagem">${avatarGround()}${body}</svg>`
 }
 function avatarGround(){return `<ellipse cx="60" cy="130" rx="38" ry="6" class="ground"/>`}
 
@@ -259,14 +260,26 @@ function obstacle(title,mode="normal"){
  return `<div class="obstacle ${mode}" id="obstacle"><div class="obstacle-icon">${icon}</div><div><b>OBSTÁCULO</b><strong>${label}</strong></div></div>`;
 }
 
+function maturity(){
+ const avg=Math.round((success()+st.career+st.happy+(100-st.stress)+st.relations)/5);
+ return clamp(avg);
+}
+function profileTitle(){
+ const m=maturity();
+ if(m>=90) return "ADULTO LENDÁRIO 🏆";
+ if(m>=80) return "ADULTO FUNCIONAL 😎";
+ if(m>=70) return "ADULTO EM EVOLUÇÃO 🚀";
+ if(m>=55) return "ADULTO SOBREVIVENTE 🛡️";
+ return "ADULTO NO MODO DIFÍCIL 😵";
+}
 function stats(){
-return `<div class="stats">
-<div class="strength ${st.strength<=25?"danger":""}">⚡<b>${st.strength}/100</b><small>força</small></div>
-<div>📈<b>${success()}%</b><small>taxa de sucesso</small></div>
-<div>💰<b>${money(st.money)}</b><small>dinheiro</small></div>
-<div>💼<b>${st.career}</b><small>carreira</small></div>
-<div>😊<b>${st.happy}</b><small>felicidade</small></div>
-<div>🧠<b>${st.stress}</b><small>estresse</small></div>
+return `<div class="hud">
+<div class="hud-main"><span>⚡ FORÇA</span><b>${st.strength}<small>/100</small></b><i><em style="width:${st.strength}%"></em></i></div>
+<div class="hud-main maturity"><span>🧠 MATURIDADE</span><b>${maturity()}<small>/100</small></b><i><em style="width:${maturity()}%"></em></i></div>
+<div class="hud-chip">📈 <b>${success()}%</b><small>acertos</small></div>
+<div class="hud-chip">🔥 <b>${st.streak}</b><small>combo</small></div>
+<div class="hud-chip">💰 <b>${money(st.money)}</b><small>saldo</small></div>
+<div class="hud-chip">💼 <b>${st.career}</b><small>carreira</small></div>
 </div>`}
 function characterPanel(){
 let status=st.strength<=20?"O bonequinho está por um fio!":st.strength<=40?"Ele está perdendo as forças.":"Ele está ficando forte!";
@@ -278,8 +291,8 @@ return `<aside class="character"><div class="age">IDADE <b>${st.age}</b> ANOS</d
 <h3>${status}</h3><div class="power"><span style="width:${st.strength}%"></span></div><small>FORÇA PARA CONCLUIR A MISSÃO</small></aside>`
 }
 function home(){
-app.innerHTML=`<div class="shell"><header><small>🎮 JOGO DE SOBREVIVÊNCIA À VIDA ADULTA</small><h1>Bem-Vindo à<br>Vida Adulta</h1><p>Escolha certo. Fique forte. Passe de fase. Chegue aos 30.</p></header>
-<div class="startgrid"><section><h2>Você começa aos 18.</h2><p>Seu bonequinho tem uma missão: <b>chegar aos 30 bem-sucedido.</b></p><p>Respostas boas aumentam sua <b>força</b>. Respostas ruins fazem você perder força. Se chegar a zero...</p><div class="warning">💀 GAME OVER</div><input id="name" maxlength="24" placeholder="Nome do personagem"><button id="start">COMEÇAR MISSÃO</button></section>${characterPanel()}</div>
+app.innerHTML=`<div class="shell"><header><small>🎮 JOGO DE SOBREVIVÊNCIA À VIDA ADULTA</small><h1>Bem-Vindo à<br>Vida Adulta</h1><p>Tome decisões. Enfrente as consequências. Descubra que tipo de adulto você será.</p></header>
+<div class="startgrid"><section><h2>Você começa aos 18.</h2><p>Seu bonequinho tem uma missão: <b>chegar aos 30 bem-sucedido.</b></p><p>Respostas boas aumentam sua <b>força</b>. Respostas ruins fazem você perder força. Se chegar a zero...</p><div class="warning">💀 GAME OVER <span>Se a força zerar, a vida adulta vence.</span></div><div class="teaser"><b>🎯 SUA MISSÃO</b><span>Chegar aos 30 com força, dinheiro, carreira e relações sem destruir sua sanidade.</span></div><input id="name" maxlength="24" placeholder="Nome do personagem"><button id="start">COMEÇAR MISSÃO</button></section>${characterPanel()}</div>
 <div class="road">${phases.map((p,i)=>`<div><strong>${i+1}</strong><span>${p.name}<small>${p.age} → ${p.next} anos</small></span></div>`).join("")}</div></div>`;
 document.querySelector("#start").onclick=()=>{st.name=document.querySelector("#name").value.trim()||"Jogador";prepareRun();intro()}
 }
@@ -307,6 +320,7 @@ feedback(c);
 function feedback(c){
 const good=c[2]===1;
 let title=good?"💪 O BONEQUINHO FICOU MAIS FORTE!":"💀 O BONEQUINHO PERDEU FORÇAS!";
+if(good && st.streak>=3) title=`🔥 COMBO x${st.streak}! ${title}`;
 let msg=good?c[1]:c[1];
 if(st.strength<=0){gameOver(c);return}
 let danger=st.strength<=35;
@@ -333,7 +347,7 @@ const r=success(),score=Math.round(st.money/100)+st.career+st.happy+(100-st.stre
 let title=r>=85?"🏆 MISSÃO CONCLUÍDA COM EXCELÊNCIA":r>=70?"🥇 MISSÃO CONCLUÍDA":"🎉 VOCÊ CHEGOU AOS 30!";
 let text=st.strength>=80?"O bonequinho chegou forte, preparado e bem-sucedido.":st.strength>=50?"Você chegou aos 30 com força suficiente para seguir em frente.":"Você chegou aos 30 no limite. Mas chegou.";
 app.innerHTML=`<div class="shell"><div class="success"><div class="final-scene"><span>🌅</span><div class="winner">${avatar()}</div><span>🏆</span></div><div class="stars">★ ★ ★</div><small>MISSÃO FINALIZADA</small><h1>${st.name}, você chegou aos 30!</h1><div class="winner">${avatar()}</div><h2>${title}</h2><p>${text}</p></div>
-<div class="final-rate"><b>${r}%</b><span>TAXA DE SUCESSO</span><small>${st.good} acertos em ${st.total} decisões</small></div>${stats()}<section><h2>🏆 RESULTADO FINAL</h2><p>Força final: <b>${st.strength}/100</b></p><p>Pontuação da jornada: <b>${score}</b></p><hr><p>Você não precisava acertar tudo. Precisava aprender a ficar forte o suficiente para continuar.</p><button id="again">JOGAR NOVAMENTE</button></section></div>`;
+<div class="final-rate"><b>${r}%</b><span>TAXA DE SUCESSO</span><small>${st.good} acertos em ${st.total} decisões</small></div>${stats()}<section><h2>🏆 RESULTADO FINAL</h2><div class="profile-badge"><small>SEU PERFIL</small><b>${profileTitle()}</b><span>Maturidade ${maturity()}/100</span></div><p>Força final: <b>${st.strength}/100</b></p><p>Pontuação da jornada: <b>${score}</b></p><hr><p>Você não precisava acertar tudo. Precisava aprender a ficar forte o suficiente para continuar.</p><button id="again">JOGAR NOVAMENTE</button></section></div>`;
 document.querySelector("#again").onclick=()=>reset();
 }
 function shuffle(a){return [...a].sort(()=>Math.random()-0.5)}
