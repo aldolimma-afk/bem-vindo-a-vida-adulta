@@ -225,7 +225,7 @@ const alternateBank=[
 ]
 ];
 
-let st={name:"",phase:0,event:0,age:18,strength:75,maxStrength:100,money:1500,career:0,happy:50,stress:20,relations:50,debt:0,good:0,total:0,streak:0};
+let st={name:"",gender:"male",phase:0,event:0,age:18,strength:75,maxStrength:100,money:1500,career:0,happy:50,stress:20,relations:50,debt:0,good:0,total:0,streak:0};
 
 const app=document.querySelector("#app");
 const money=v=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(v);
@@ -234,16 +234,93 @@ const success=()=>st.total?Math.round(st.good/st.total*100):0;
 
 function apply(fx){st.money+=fx.m||0;st.career=clamp(st.career+(fx.c||0));st.happy=clamp(st.happy+(fx.h||0));st.stress=clamp(st.stress+(fx.s||0));st.relations=clamp(st.relations+(fx.r||0));st.debt=Math.max(0,st.debt+(fx.d||0))}
 function avatar(){
- let mood=st.strength<=20?"dead":st.strength<=40?"weak":st.strength>=80?"strong":"normal";
- let era=st.age>=28?"veteran":st.age>=23?"adult":"young";
- let body=mood==="dead"?`<g class="char dead"><circle cx="60" cy="35" r="18"/><path d="M50 28l20 14M70 28L50 42"/><path d="M60 53v45M60 64L35 78M60 64l25 14M60 98L42 125M60 98l18 27"/></g>`:
- mood==="weak"?`<g class="char weak"><circle cx="60" cy="30" r="16"/><path d="M60 46v48M60 58L38 73M60 58l22 15M60 94l-14 30M60 94l14 30"/><path d="M48 27q12 8 24 0"/></g>`:
- mood==="strong"?`<g class="char strong"><circle cx="60" cy="28" r="17"/><path d="M60 45v50M60 56L30 72M60 56l30 16M60 95L40 126M60 95l20 31"/><path d="M42 55Q25 45 18 60M78 55Q95 45 102 60"/></g>`:
- `<g class="char"><circle cx="60" cy="30" r="16"/><path d="M60 46v48M60 57L37 73M60 57l23 16M60 94L45 124M60 94l15 30"/><path d="M50 28q10 7 20 0"/></g>`;
- return `<svg class="avatar ${era}" viewBox="0 0 120 145" aria-label="Seu personagem">${avatarGround()}${body}</svg>`
-}
-function avatarGround(){return `<ellipse cx="60" cy="130" rx="38" ry="6" class="ground"/>`}
+ const good=st.good;
+ const growth=good<2?0:good<5?1:good<9?2:good<14?3:4;
+ const mood=st.strength<=20?"dead":st.strength<=40?"weak":st.strength>=80?"strong":"normal";
+ const female=st.gender==="female";
 
+ const skin=["#f0b58d","#f0b58d","#e9ad84","#e2a27a","#d99a72"][growth];
+ const skinShadow=["#d99570","#d99570","#cf8e69","#c88460","#bd7957"][growth];
+ const hair=female
+   ?["#4b2b22","#4b2b22","#3b251f","#2d1e1a","#211714"][growth]
+   :["#241b19","#241b19","#1d1715","#171313","#111010"][growth];
+ const shirt=female
+   ?["#8b5cc6","#9b5ac3","#a755bb","#8c47a9","#71398d"][growth]
+   :["#315f9f","#315f9f","#2d6b9e","#25527f","#203f64"][growth];
+ const pants=female
+   ?["#303b52","#303b52","#2c354a","#282f42","#222838"][growth]
+   :["#263241","#263241","#242f3d","#202a36","#1b2430"][growth];
+ const shoe="#11161d";
+ const scale=[.88,.93,.98,1.03,1.08][growth];
+
+ const lean=mood==="weak"?4:mood==="dead"?72:0;
+ const shoulder=female?[18,19,20,21,22][growth]:[20,21,22,23,24][growth];
+
+ const eyes=mood==="dead"
+   ?`<path d="M48 35l5 5m0-5l-5 5M66 35l5 5m0-5l-5 5" stroke="#4d3431" stroke-width="2.2" stroke-linecap="round"/>`
+   :`<ellipse cx="50" cy="35" rx="2.1" ry="2.7" fill="#202124"/><ellipse cx="68" cy="35" rx="2.1" ry="2.7" fill="#202124"/>
+     <circle cx="50.7" cy="34.2" r=".65" fill="#fff"/><circle cx="68.7" cy="34.2" r=".65" fill="#fff"/>`;
+
+ const mouth=mood==="dead"
+   ?`<path d="M54 49q4-3 9 0" stroke="#75494a" stroke-width="2.2" fill="none" stroke-linecap="round"/>`
+   :`<path d="M54 46q5 ${mood==="strong"?5:2} 10 0" stroke="#8c4c50" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+
+ const hairShape=female
+   ?`<path d="M40 37Q38 10 59 6Q81 8 79 37L75 28Q71 17 59 17Q48 17 44 30Z" fill="${hair}"/>
+      <path d="M43 29Q37 44 43 58M77 29Q84 45 76 61" fill="none" stroke="${hair}" stroke-width="${10+growth}" stroke-linecap="round"/>
+      <path d="M44 22Q50 11 63 12" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width="2"/>`
+   :`<path d="M42 31Q40 10 59 6Q77 8 77 30L71 24Q65 18 56 20L48 26Z" fill="${hair}"/>
+      <path d="M46 23Q52 12 64 12" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width="2"/>`;
+
+ const neck=`<rect x="55" y="49" width="10" height="16" rx="5" fill="${skin}"/>`;
+
+ const torso=female
+   ?`<path d="M46 62Q59 56 74 62L79 101Q60 107 40 101Z" fill="${shirt}"/>
+      <path d="M47 64Q59 69 73 64" fill="none" stroke="#fff" stroke-opacity=".13" stroke-width="2"/>
+      <path d="M59 66v31" stroke="#fff" stroke-opacity=".08" stroke-width="2"/>`
+   :`<path d="M46 61Q59 56 73 61L77 101H42Z" fill="${shirt}"/>
+      <path d="M50 65Q59 69 69 65" fill="none" stroke="#fff" stroke-opacity=".12" stroke-width="2"/>
+      <path d="M52 69h16v22H52z" fill="#fff" fill-opacity=".045"/>`;
+
+ const arms=`
+   <path d="M47 65L${35-shoulder/8} 88" stroke="${skin}" stroke-width="${8+growth*.35}" stroke-linecap="round"/>
+   <path d="M72 65L${84+shoulder/8} 88" stroke="${skin}" stroke-width="${8+growth*.35}" stroke-linecap="round"/>
+   <circle cx="${35-shoulder/8}" cy="88" r="4.2" fill="${skin}"/>
+   <circle cx="${84+shoulder/8}" cy="88" r="4.2" fill="${skin}"/>`;
+
+ const legs=female
+   ?`<path d="M49 99L53 126M69 99L65 126" stroke="${pants}" stroke-width="12" stroke-linecap="round"/>
+      <path d="M53 126L43 128M65 126L76 128" stroke="${shoe}" stroke-width="7" stroke-linecap="round"/>`
+   :`<path d="M49 99L54 126M69 99L64 126" stroke="${pants}" stroke-width="12" stroke-linecap="round"/>
+      <path d="M54 126L43 128M64 126L76 128" stroke="${shoe}" stroke-width="7" stroke-linecap="round"/>`;
+
+ const bodyDetail=growth>=2
+   ?`<path d="M43 101Q59 105 77 101" fill="none" stroke="${skinShadow}" stroke-opacity=".35" stroke-width="2"/>
+      ${female?"":"<path d=\"M48 68h4v3h-4zM68 68h4v3h-4z\" fill=\"#d8bd67\" opacity=\".7\"/>"}`
+   :"";
+
+ const badge=growth>=4
+   ?`<circle cx="60" cy="78" r="6" fill="#f4c542"/><path d="M57 78l2 2 4-5" stroke="#fff" stroke-width="2" fill="none"/>`
+   :"";
+
+ return `<svg class="avatar ${female?"female":"male"} growth-${growth} mood-${mood}" viewBox="0 0 120 145" role="img" aria-label="Personagem ${female?"feminino":"masculino"} em evolução">
+   <ellipse cx="60" cy="135" rx="${30+growth*2}" ry="5" class="ground"/>
+   <g class="character-body" transform="translate(60 0) rotate(${lean} 60 85) scale(${scale}) translate(-60 0)">
+     ${legs}${torso}${arms}${neck}
+     <circle cx="59" cy="34" r="18" fill="${skin}"/>
+     <ellipse cx="51" cy="39" rx="5" ry="3" fill="${skinShadow}" opacity=".18"/>
+     ${hairShape}${eyes}${mouth}${bodyDetail}${badge}
+   </g>
+ </svg>`;
+}
+function characterGrowthLabel(){
+ const g=st.good;
+ if(g<2) return "Começando a crescer";
+ if(g<5) return "Aprendendo a ser adulto";
+ if(g<9) return "Tomando forma";
+ if(g<14) return "Adulto em evolução";
+ return "Adulto completo";
+}
 function obstacleFor(title){
  const t=title.toUpperCase();
  if(t.includes("SALÁRIO")||t.includes("SALARIO")||t.includes("DINHEIRO")||t.includes("PIX")||t.includes("BÔNUS")||t.includes("BONUS")) return ["💸","DINHEIRO"];
@@ -282,8 +359,8 @@ return `<div class="hud">
 <div class="hud-chip">💼 <b>${st.career}</b><small>carreira</small></div>
 </div>`}
 function characterPanel(){
-let status=st.strength<=20?"O bonequinho está por um fio!":st.strength<=40?"Ele está perdendo as forças.":"Ele está ficando forte!";
-let pos=Math.min(94,8+(st.event*22));
+let status=st.strength<=20?"O personagem está por um fio!":st.strength<=40?"Ele está perdendo as forças.":`${characterGrowthLabel()}!`;
+let pos=Math.min(92,8+(st.event*28));
 return `<aside class="character"><div class="age">IDADE <b>${st.age}</b> ANOS</div>
 <div class="journey"><div class="sky"><span class="sun">☀️</span><span class="cloud">☁️</span></div>
 <div class="mountain"></div><div class="path"><div class="flag">🏁</div><div class="runner" style="left:${pos}%">${avatar()}</div></div>
@@ -292,8 +369,9 @@ return `<aside class="character"><div class="age">IDADE <b>${st.age}</b> ANOS</d
 }
 function home(){
 app.innerHTML=`<div class="shell"><header><small>🎮 JOGO DE SOBREVIVÊNCIA À VIDA ADULTA</small><h1>Bem-Vindo à<br>Vida Adulta</h1><p>Tome decisões. Enfrente as consequências. Descubra que tipo de adulto você será.</p></header>
-<div class="startgrid"><section><h2>Você começa aos 18.</h2><p>Seu bonequinho tem uma missão: <b>chegar aos 30 bem-sucedido.</b></p><p>Respostas boas aumentam sua <b>força</b>. Respostas ruins fazem você perder força. Se chegar a zero...</p><div class="warning">💀 GAME OVER <span>Se a força zerar, a vida adulta vence.</span></div><div class="teaser"><b>🎯 SUA MISSÃO</b><span>Chegar aos 30 com força, dinheiro, carreira e relações sem destruir sua sanidade.</span></div><input id="name" maxlength="24" placeholder="Nome do personagem"><button id="start">COMEÇAR MISSÃO</button></section>${characterPanel()}</div>
+<div class="startgrid"><section><h2>Você começa aos 18.</h2><p>Seu personagem tem uma missão: <b>chegar aos 30 bem-sucedido.</b></p><p>Suas decisões mudam sua força e, a cada acerto, <b>o personagem cresce e ganha forma de adulto.</b></p><div class="teaser"><b>🧬 ESCOLHA SEU PERSONAGEM</b><div class="gender-select"><button type="button" class="gender-btn selected" data-gender="male">♂️ MASCULINO</button><button type="button" class="gender-btn" data-gender="female">♀️ FEMININO</button></div><small>Você poderá acompanhar sua evolução durante toda a jornada.</small></div><div class="warning">💀 GAME OVER <span>Se a força zerar, a vida adulta vence.</span></div><input id="name" maxlength="24" placeholder="Nome do personagem"><button id="start">COMEÇAR MISSÃO</button></section>${characterPanel()}</div>
 <div class="road">${phases.map((p,i)=>`<div><strong>${i+1}</strong><span>${p.name}<small>${p.age} → ${p.next} anos</small></span></div>`).join("")}</div></div>`;
+document.querySelectorAll(".gender-btn").forEach(b=>b.onclick=()=>{st.gender=b.dataset.gender;document.querySelectorAll(".gender-btn").forEach(x=>x.classList.toggle("selected",x===b));document.querySelector(".character")?.replaceWith(new DOMParser().parseFromString(characterPanel(),"text/html").body.firstElementChild)});
 document.querySelector("#start").onclick=()=>{st.name=document.querySelector("#name").value.trim()||"Jogador";prepareRun();intro()}
 }
 function intro(){
@@ -305,10 +383,43 @@ document.querySelector("#go").onclick=eventScreen;
 }
 function eventScreen(){
 const p=phases[st.phase],e=p.events[st.event];
-app.innerHTML=`<div class="shell"><div class="top"><span>FASE ${st.phase+1} · ${p.name}</span><span>${st.event+1}/4</span></div><div class="bar"><i style="width:${((st.phase*4+st.event)/20)*100}%"></i></div>
-<div class="gamegrid"><div>${characterPanel()}</div><div>${stats()}<article><small>⚡ A VIDA ACONTECEU</small>${obstacle(e[0])}<h1>${e[0]}</h1><p>${e[1]}</p><h3>Qual é a sua escolha?</h3>
-${e[2].map((c,i)=>`<button class="choice" data-i="${i}"><b>${String.fromCharCode(65+i)}</b><span><strong>${c[0]}</strong><small>${c[1]}</small></span></button>`).join("")}</article></div></div></div>`;
-document.querySelectorAll(".choice").forEach(b=>b.onclick=()=>choose(+b.dataset.i));
+const growth=st.good<2?"18 ANOS":st.good<5?"19–20 ANOS":st.good<9?"23 ANOS":st.good<14?"26–28 ANOS":"30 ANOS";
+app.innerHTML=`<div class="shell"><div class="top"><span>FASE ${st.phase+1} · ${p.name}</span><span>DECISÃO ${st.event+1}/4</span></div>
+<div class="bar"><i style="width:${((st.phase*4+st.event)/20)*100}%"></i></div>
+<div class="decision-layout">
+  <section class="decision-stage">
+    <div class="stage-head"><div><small>⚡ A VIDA ACONTECEU</small><h1>${e[0]}</h1></div><div class="age-badge">${st.age} anos</div></div>
+    <p class="scenario">${e[1]}</p>
+    <div class="life-scene">
+      <div class="scene-ground"></div>
+      <div class="scene-character" id="decision-character">${avatar()}</div>
+      <div class="scene-obstacle">${obstacleFor(e[0])[0]}<b>${obstacleFor(e[0])[1]}</b></div>
+      <div class="scene-sign">O que você faria?</div>
+    </div>
+    <div class="choice-title"><strong>Escolha uma decisão</strong><small>O bonequinho vai até a sua escolha.</small></div>
+    <div class="choices">
+    ${e[2].map((c,i)=>`<button type="button" class="choice game-choice" data-i="${i}">
+      <b>${String.fromCharCode(65+i)}</b><span><strong>${c[0]}</strong><small>${c[1]}</small></span><em>➜</em>
+    </button>`).join("")}
+    </div>
+  </section>
+  <aside class="decision-side">
+    ${stats()}
+    <div class="growth-card"><small>🧬 SUA EVOLUÇÃO</small><div class="growth-mini">${avatar()}</div><b>${characterGrowthLabel()}</b><span>${growth}</span><p>Cada boa decisão muda a história. O personagem fica mais preparado conforme você acerta.</p></div>
+    <div class="mission-rule">💡 <b>Regra:</b> decisões certas fortalecem o personagem. Decisões ruins fazem ele perder força.</div>
+  </aside>
+</div></div>`;
+document.querySelectorAll(".game-choice").forEach(b=>b.onclick=()=>{
+  if(document.querySelector(".decision-layout.locked")) return;
+  document.querySelector(".decision-layout").classList.add("locked");
+  const i=+b.dataset.i;
+  document.querySelectorAll(".game-choice").forEach(x=>x.disabled=true);
+  b.classList.add("chosen");
+  const runner=document.querySelector("#decision-character");
+  runner.classList.add("running");
+  runner.style.setProperty("--target-x", `${Math.max(-110, Math.min(110, (i-1)*105))}px`);
+  setTimeout(()=>choose(i), 720);
+});
 }
 function choose(i){
 const e=phases[st.phase].events[st.event],c=e[2][i];
@@ -338,8 +449,24 @@ document.querySelector("#again").onclick=()=>reset();
 function phaseDone(){
 const next=phases[st.phase],r=success();
 let canContinue=st.strength>=35;
-app.innerHTML=`<div class="shell"><div class="phasewin">🏆</div><div class="finish-line"><span>🏁</span><div class="crossing">${avatar()}</div><b>CHEGOU!</b></div><small>FASE CONCLUÍDA</small><h1>Você chegou aos ${next.age} anos!</h1><p>${r>=75?"🔥 O bonequinho está forte e preparado.":r>=50?"💪 Ele está sobrevivendo.":"⚠️ Ele passou, mas está precisando recuperar forças."}</p>
-<div class="phase-result"><div class="miniavatar">${avatar()}</div><div><b>${st.strength}/100</b><span>força atual</span><strong>${r}%</strong><span>taxa de sucesso</span></div></div>${stats()}<section><h2>${next.name}</h2><p>${canContinue?"Você está forte o suficiente para avançar.":"Você avançou no limite. A próxima fase será perigosa."}</p><button id="next">AVANÇAR PARA ${next.age} ANOS</button></section></div>`;
+const ageStops=[18,20,23,26,28,30];
+const fromAge=st.age, toAge=next.age;
+app.innerHTML=`<div class="shell phase-transition">
+<div class="phasewin">🏆</div>
+<small>FASE CONCLUÍDA</small><h1>${st.name}, você passou de fase!</h1>
+<div class="level-scene">
+  <div class="scene-title"><b>${fromAge} ANOS</b><span>→</span><b>${toAge} ANOS</b></div>
+  <div class="level-road">
+    <div class="scene-obstacle left">🧱</div><div class="scene-obstacle right">🎯</div>
+    <div class="level-runner">${avatar()}</div>
+    <div class="level-flag">🏁</div>
+  </div>
+  <div class="level-message">🏃 <b>O BONEQUINHO PASSOU DE FASE!</b><span>Próximo destino: ${next.name}</span></div>
+</div>
+<div class="phase-map">${ageStops.map((age,i)=>{const done=age<=fromAge,active=age===toAge;return `<div class="map-node ${done?"done":""} ${active?"active":""}"><span>${done?"✓":active?"🏃":"🔒"}</span><b>${age}</b><small>anos</small></div>`}).join("")}</div>
+<p>${r>=75?"🔥 O bonequinho está forte e preparado.":r>=50?"💪 Ele está sobrevivendo.":"⚠️ Ele passou, mas está precisando recuperar forças."}</p>
+<div class="phase-result"><div class="miniavatar">${avatar()}</div><div><b>${st.strength}/100</b><span>força atual</span><strong>${r}%</strong><span>taxa de sucesso</span></div></div>${stats()}
+<section><h2>${next.name}</h2><p>${canContinue?"Você está forte o suficiente para avançar.":"Você avançou no limite. A próxima fase será perigosa."}</p><button id="next">AVANÇAR PARA ${next.age} ANOS</button></section></div>`;
 document.querySelector("#next").onclick=intro;
 }
 function finish(){
@@ -359,7 +486,7 @@ function prepareRun(){
   });
 }
 function reset(){
-  st={name:"",phase:0,event:0,age:18,strength:75,maxStrength:100,money:1500,career:0,happy:50,stress:20,relations:50,debt:0,good:0,total:0,streak:0};
+  st={name:"",gender:"male",phase:0,event:0,age:18,strength:75,maxStrength:100,money:1500,career:0,happy:50,stress:20,relations:50,debt:0,good:0,total:0,streak:0};
   prepareRun();
   home();
 }
